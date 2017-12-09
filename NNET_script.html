@@ -1,0 +1,684 @@
+<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(ggplot2)</span>
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'ggplot2' was built under R version 3.4.2
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(GGally)</span>
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'GGally' was built under R version 3.4.2
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(nnet)</span>
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'nnet' was built under R version 3.4.2
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">set.seed</span><span class="hl std">(</span><span class="hl num">999</span><span class="hl std">)</span>
+
+<span class="hl std">redshifts</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl str">&quot;redshift_between0and1.csv&quot;</span><span class="hl std">)</span>
+<span class="hl com">#redshifts &lt;- read.csv(&quot;redshift_between0and7.csv&quot;)</span>
+<span class="hl std">redshifts</span> <span class="hl kwb">&lt;-</span> <span class="hl std">redshifts[</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;u&quot;</span><span class="hl std">,</span><span class="hl str">&quot;g&quot;</span><span class="hl std">,</span><span class="hl str">&quot;r&quot;</span><span class="hl std">,</span><span class="hl str">&quot;i&quot;</span><span class="hl std">,</span><span class="hl str">&quot;z&quot;</span><span class="hl std">,</span><span class="hl str">&quot;redshift&quot;</span><span class="hl std">)]</span>
+<span class="hl std">npoints_train</span> <span class="hl kwb">=</span> <span class="hl kwd">as.integer</span><span class="hl std">(</span><span class="hl kwd">dim</span><span class="hl std">(redshifts)[</span><span class="hl num">1</span><span class="hl std">]</span><span class="hl opt">*</span><span class="hl num">2</span><span class="hl opt">/</span><span class="hl num">3</span><span class="hl std">)</span>
+
+<span class="hl std">Sigmas</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">data.frame</span><span class="hl std">(</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">),</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">0</span><span class="hl std">))</span>
+<span class="hl kwd">names</span><span class="hl std">(Sigmas)</span><span class="hl kwb">&lt;-</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;neurons&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma1&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma2&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma3&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma4&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma5&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma6&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma7&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma8&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma9&quot;</span><span class="hl std">,</span><span class="hl str">&quot;sigma10&quot;</span><span class="hl std">)</span>
+
+<span class="hl com">#for(neurons in c(5,seq(10,100,10))){</span>
+<span class="hl kwa">for</span><span class="hl std">(neurons</span> <span class="hl kwa">in</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">5</span><span class="hl std">,</span><span class="hl num">10</span><span class="hl std">)){</span>
+  <span class="hl std">Sigma</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">c</span><span class="hl std">()</span>
+  <span class="hl kwa">for</span><span class="hl std">(i</span> <span class="hl kwa">in</span> <span class="hl kwd">seq</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span><span class="hl num">10</span><span class="hl std">)){</span>
+    <span class="hl std">redshifts</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">sample</span><span class="hl std">(redshifts)</span>
+    <span class="hl std">samp</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">sample</span><span class="hl std">(npoints_train)</span>
+    <span class="hl std">nnet.fit</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">nnet</span><span class="hl std">(redshift</span> <span class="hl opt">~</span> <span class="hl std">.,</span> <span class="hl kwc">data</span><span class="hl std">=redshifts,</span> <span class="hl kwc">size</span><span class="hl std">=neurons,</span> <span class="hl kwc">subset</span> <span class="hl std">= samp,</span> <span class="hl kwc">maxit</span> <span class="hl std">=</span> <span class="hl num">10000</span><span class="hl std">,</span> <span class="hl kwc">trace</span><span class="hl std">=</span><span class="hl num">TRUE</span><span class="hl std">,</span> <span class="hl kwc">linout</span><span class="hl std">=</span><span class="hl num">TRUE</span><span class="hl std">)</span>
+    <span class="hl std">nnet.predict</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(nnet.fit, redshifts[</span><span class="hl opt">-</span><span class="hl std">samp,])</span>
+    <span class="hl std">redshiftsV</span> <span class="hl kwb">&lt;-</span> <span class="hl std">redshifts[</span><span class="hl opt">-</span><span class="hl std">samp,]</span>
+    <span class="hl com">#MSE &lt;- mean((nnet.predict - redshiftsV$redshift)^2)</span>
+
+    <span class="hl std">Sigma[i]</span> <span class="hl kwb">&lt;-</span> <span class="hl num">1.48</span><span class="hl opt">*</span><span class="hl kwd">median</span><span class="hl std">(</span><span class="hl kwd">abs</span><span class="hl std">((nnet.predict</span><span class="hl opt">-</span><span class="hl std">redshiftsV</span><span class="hl opt">$</span><span class="hl std">redshift)</span> <span class="hl opt">-</span> <span class="hl kwd">median</span><span class="hl std">(nnet.predict</span><span class="hl opt">-</span><span class="hl std">redshiftsV</span><span class="hl opt">$</span><span class="hl std">redshift))</span><span class="hl opt">/</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">+</span><span class="hl std">redshiftsV</span><span class="hl opt">$</span><span class="hl std">redshift))</span>
+
+    <span class="hl std">redshiftsV</span><span class="hl opt">$</span><span class="hl std">predicted</span> <span class="hl kwb">&lt;-</span> <span class="hl std">nnet.predict</span>
+  <span class="hl com"># Remove data frame column after plotting!</span>
+    <span class="hl std">redshiftsV</span><span class="hl opt">$</span><span class="hl std">predicted</span> <span class="hl kwb">&lt;-</span> <span class="hl kwa">NULL</span>
+  <span class="hl std">}</span>
+
+  <span class="hl com">#newrow &lt;- c(neurons,max(Sigma),min(Sigma),mean(Sigma))</span>
+  <span class="hl com">#results &lt;- rbind(results,newrow)</span>
+  <span class="hl std">newrow</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">c</span><span class="hl std">(neurons,Sigma)</span>
+  <span class="hl std">Sigmas</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">rbind</span><span class="hl std">(Sigmas,newrow)</span>
+<span class="hl std">}</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## # weights:  36
+## initial  value 36645.390606 
+## iter  10 value 844.265467
+## iter  20 value 199.018575
+## iter  30 value 102.839334
+## iter  40 value 100.774447
+## iter  50 value 100.583856
+## iter  60 value 100.345252
+## iter  70 value 99.586928
+## iter  80 value 97.208174
+## iter  90 value 92.818041
+## iter 100 value 86.764106
+## iter 110 value 85.750167
+## iter 120 value 85.449420
+## iter 130 value 85.176766
+## iter 140 value 84.778427
+## iter 150 value 84.753865
+## iter 160 value 84.680721
+## iter 170 value 82.304875
+## iter 180 value 78.524029
+## iter 190 value 77.914527
+## iter 200 value 77.840745
+## iter 210 value 77.804833
+## iter 220 value 77.801506
+## iter 230 value 77.800415
+## iter 240 value 77.799574
+## final  value 77.799434 
+## converged
+## # weights:  36
+## initial  value 6925.488265 
+## iter  10 value 764.880384
+## iter  20 value 136.054793
+## iter  30 value 102.633924
+## iter  40 value 101.023141
+## final  value 100.910056 
+## converged
+## # weights:  36
+## initial  value 2294.255742 
+## iter  10 value 1494.165433
+## iter  20 value 1347.850394
+## iter  30 value 134.540782
+## iter  40 value 101.173752
+## iter  50 value 100.910056
+## iter  50 value 100.910056
+## iter  50 value 100.910056
+## final  value 100.910056 
+## converged
+## # weights:  36
+## initial  value 94838.468353 
+## iter  10 value 1484.900687
+## iter  20 value 951.507395
+## iter  30 value 120.282281
+## iter  40 value 102.139512
+## iter  50 value 100.911478
+## final  value 100.910056 
+## converged
+## # weights:  36
+## initial  value 75338.016892 
+## iter  10 value 1461.536868
+## iter  20 value 325.998136
+## iter  30 value 110.395225
+## iter  40 value 102.025022
+## iter  50 value 100.910713
+## final  value 100.910056 
+## converged
+## # weights:  36
+## initial  value 22013.984190 
+## iter  10 value 1486.451105
+## iter  20 value 411.395443
+## iter  30 value 107.020287
+## iter  40 value 104.605127
+## iter  50 value 101.267727
+## iter  60 value 100.852488
+## iter  70 value 97.530511
+## iter  80 value 94.527891
+## iter  90 value 87.771379
+## iter 100 value 84.842281
+## iter 110 value 84.582743
+## final  value 84.580413 
+## converged
+## # weights:  36
+## initial  value 45769.475154 
+## iter  10 value 1538.512218
+## iter  20 value 1538.435118
+## iter  30 value 1469.823975
+## iter  40 value 964.903072
+## iter  50 value 235.029300
+## iter  60 value 142.484512
+## iter  70 value 128.696893
+## iter  80 value 123.488058
+## iter  90 value 122.395966
+## iter 100 value 121.685626
+## iter 110 value 121.416005
+## iter 120 value 120.740684
+## iter 130 value 120.248023
+## iter 140 value 119.991593
+## iter 150 value 119.794707
+## iter 160 value 119.700490
+## iter 170 value 119.646543
+## iter 180 value 119.604261
+## iter 190 value 119.567132
+## iter 200 value 119.543917
+## iter 210 value 119.540592
+## final  value 119.540462 
+## converged
+## # weights:  36
+## initial  value 33675.157940 
+## iter  10 value 1211.901071
+## iter  20 value 237.495035
+## iter  30 value 107.424473
+## iter  40 value 91.269479
+## iter  50 value 88.601670
+## iter  60 value 86.779116
+## iter  70 value 84.772030
+## iter  80 value 84.573805
+## iter  90 value 84.393948
+## iter 100 value 84.128945
+## iter 110 value 83.591688
+## iter 120 value 83.011461
+## iter 130 value 81.807757
+## iter 140 value 80.276033
+## iter 150 value 79.499637
+## iter 160 value 79.256110
+## iter 170 value 79.224675
+## iter 180 value 79.156400
+## iter 190 value 78.987904
+## iter 200 value 78.098367
+## iter 210 value 77.637277
+## iter 220 value 77.095780
+## iter 230 value 76.747918
+## iter 240 value 76.578041
+## iter 250 value 76.487619
+## iter 260 value 76.377351
+## iter 270 value 76.334415
+## iter 280 value 76.313252
+## iter 290 value 76.301989
+## iter 300 value 76.295504
+## iter 310 value 76.293145
+## iter 320 value 76.292854
+## iter 330 value 76.290977
+## iter 340 value 76.289395
+## iter 350 value 76.288561
+## iter 360 value 76.287789
+## iter 370 value 76.287330
+## iter 380 value 76.286839
+## final  value 76.286775 
+## converged
+## # weights:  36
+## initial  value 2627.796506 
+## iter  10 value 1172.083998
+## iter  20 value 118.539390
+## iter  30 value 101.883370
+## iter  40 value 100.910124
+## final  value 100.910058 
+## converged
+## # weights:  36
+## initial  value 19653.103177 
+## iter  10 value 1520.703858
+## iter  20 value 1359.459392
+## iter  30 value 764.956977
+## iter  40 value 175.842009
+## iter  50 value 98.540603
+## iter  60 value 96.292444
+## iter  70 value 92.588962
+## iter  80 value 86.837314
+## iter  90 value 86.063218
+## iter 100 value 86.040377
+## iter 110 value 86.019009
+## iter 120 value 85.910807
+## iter 130 value 85.820978
+## iter 140 value 85.715183
+## iter 150 value 85.660321
+## iter 160 value 85.588757
+## iter 170 value 85.564728
+## iter 180 value 85.554470
+## iter 190 value 85.530473
+## iter 200 value 85.516107
+## iter 210 value 85.505095
+## iter 220 value 85.495095
+## iter 230 value 85.486555
+## iter 240 value 85.479806
+## iter 250 value 85.477570
+## final  value 85.477542 
+## converged
+## # weights:  71
+## initial  value 1565.073529 
+## iter  10 value 1067.778083
+## iter  20 value 279.553631
+## iter  30 value 121.726543
+## iter  40 value 100.707951
+## iter  50 value 95.408553
+## iter  60 value 88.445887
+## iter  70 value 84.534087
+## iter  80 value 83.235229
+## iter  90 value 82.667436
+## iter 100 value 81.349153
+## iter 110 value 80.489016
+## iter 120 value 78.887274
+## iter 130 value 78.168290
+## iter 140 value 77.576858
+## iter 150 value 77.193311
+## iter 160 value 76.353563
+## iter 170 value 75.260307
+## iter 180 value 74.393161
+## iter 190 value 74.174805
+## iter 200 value 74.045750
+## iter 210 value 74.027497
+## iter 220 value 74.018949
+## iter 230 value 74.008438
+## iter 240 value 73.990307
+## iter 250 value 73.398136
+## iter 260 value 72.802046
+## iter 270 value 71.628195
+## iter 280 value 71.365385
+## iter 290 value 71.105968
+## iter 300 value 70.703267
+## iter 310 value 69.529399
+## iter 320 value 69.034729
+## iter 330 value 68.951286
+## iter 340 value 68.920614
+## iter 350 value 68.905933
+## iter 360 value 68.884979
+## iter 370 value 68.860378
+## iter 380 value 68.858803
+## iter 390 value 68.844826
+## iter 400 value 68.808837
+## iter 410 value 68.782317
+## iter 420 value 68.749835
+## iter 430 value 68.727587
+## iter 440 value 68.684890
+## iter 450 value 68.667572
+## iter 460 value 68.650895
+## iter 470 value 68.636955
+## iter 480 value 68.628115
+## iter 490 value 68.614334
+## iter 500 value 68.586647
+## iter 510 value 68.565673
+## iter 520 value 68.555661
+## iter 530 value 68.548753
+## iter 540 value 68.543884
+## iter 550 value 68.528260
+## iter 560 value 68.511354
+## iter 570 value 68.479450
+## iter 580 value 68.392973
+## iter 590 value 68.349331
+## iter 600 value 68.331020
+## iter 610 value 68.287601
+## iter 620 value 68.222298
+## iter 630 value 68.184168
+## iter 640 value 68.083203
+## iter 650 value 68.019637
+## iter 660 value 67.976504
+## iter 670 value 67.962762
+## iter 680 value 67.910190
+## iter 690 value 67.834835
+## iter 700 value 67.813433
+## iter 710 value 67.803393
+## iter 720 value 67.795313
+## iter 730 value 67.790554
+## iter 740 value 67.786698
+## iter 750 value 67.783900
+## iter 760 value 67.780550
+## iter 770 value 67.775436
+## iter 780 value 67.770015
+## iter 790 value 67.765101
+## iter 800 value 67.760911
+## iter 810 value 67.760791
+## iter 810 value 67.760791
+## final  value 67.760788 
+## converged
+## # weights:  71
+## initial  value 3921.086221 
+## iter  10 value 1356.940041
+## iter  20 value 873.680425
+## iter  30 value 351.208294
+## iter  40 value 144.429822
+## iter  50 value 114.466855
+## iter  60 value 96.625324
+## iter  70 value 89.581030
+## iter  80 value 84.810539
+## iter  90 value 83.482772
+## iter 100 value 82.919965
+## iter 110 value 81.997689
+## iter 120 value 81.085657
+## iter 130 value 79.466742
+## iter 140 value 77.041821
+## iter 150 value 75.310721
+## iter 160 value 74.727776
+## iter 170 value 74.497757
+## iter 180 value 74.387577
+## iter 190 value 74.314631
+## iter 200 value 74.084481
+## iter 210 value 73.970996
+## iter 220 value 73.893441
+## iter 230 value 73.715791
+## iter 240 value 73.355712
+## iter 250 value 73.046476
+## iter 260 value 72.722869
+## iter 270 value 72.248397
+## iter 280 value 72.027825
+## iter 290 value 71.952442
+## iter 300 value 71.856326
+## iter 310 value 71.604691
+## iter 320 value 71.550178
+## iter 330 value 71.543577
+## iter 340 value 71.524420
+## iter 350 value 71.480164
+## iter 360 value 71.373918
+## iter 370 value 71.296378
+## iter 380 value 71.275403
+## iter 390 value 71.265083
+## iter 400 value 71.177230
+## iter 410 value 71.107315
+## iter 420 value 71.098302
+## iter 430 value 71.094281
+## iter 440 value 71.091971
+## iter 450 value 71.089512
+## iter 460 value 71.087239
+## iter 470 value 71.073311
+## iter 480 value 71.045898
+## iter 490 value 70.997550
+## iter 500 value 70.699925
+## iter 510 value 70.171494
+## iter 520 value 69.834480
+## iter 530 value 69.689605
+## iter 540 value 69.249221
+## iter 550 value 68.753121
+## iter 560 value 68.503955
+## iter 570 value 68.418325
+## iter 580 value 68.405908
+## iter 590 value 68.400534
+## iter 600 value 68.395976
+## iter 610 value 68.395662
+## iter 620 value 68.395258
+## iter 630 value 68.394435
+## iter 640 value 68.393712
+## iter 650 value 68.390751
+## iter 660 value 68.390323
+## final  value 68.390319 
+## converged
+## # weights:  71
+## initial  value 23292.003775 
+## iter  10 value 1464.545606
+## iter  20 value 617.124718
+## iter  30 value 147.490585
+## iter  40 value 109.530099
+## iter  50 value 105.715107
+## iter  60 value 99.680272
+## iter  70 value 91.790981
+## iter  80 value 86.109646
+## iter  90 value 85.138107
+## iter 100 value 82.411545
+## iter 110 value 79.182359
+## iter 120 value 78.207566
+## iter 130 value 77.466432
+## iter 140 value 76.997636
+## iter 150 value 76.765541
+## iter 160 value 76.496665
+## iter 170 value 76.392546
+## iter 180 value 76.340024
+## iter 190 value 76.317055
+## iter 200 value 76.309011
+## iter 210 value 76.298368
+## iter 220 value 76.293659
+## iter 230 value 76.291170
+## iter 230 value 76.291170
+## final  value 76.291170 
+## converged
+## # weights:  71
+## initial  value 137423.601882 
+## iter  10 value 1437.387549
+## iter  20 value 1146.401048
+## iter  30 value 455.468414
+## iter  40 value 135.333917
+## iter  50 value 109.825684
+## iter  60 value 102.955884
+## iter  70 value 93.942822
+## iter  80 value 82.701845
+## iter  90 value 78.136500
+## iter 100 value 75.801749
+## iter 110 value 73.863018
+## iter 120 value 71.445515
+## iter 130 value 70.957254
+## iter 140 value 70.696066
+## iter 150 value 70.641849
+## iter 160 value 70.612312
+## iter 170 value 70.588343
+## iter 180 value 70.565196
+## iter 190 value 70.533026
+## iter 200 value 70.480786
+## iter 210 value 70.426841
+## iter 220 value 70.130504
+## iter 230 value 69.576895
+## iter 240 value 69.251764
+## iter 250 value 69.156898
+## iter 260 value 69.010787
+## iter 270 value 68.520506
+## iter 280 value 67.586492
+## iter 290 value 67.375441
+## iter 300 value 67.289493
+## iter 310 value 67.245302
+## iter 320 value 67.233365
+## iter 330 value 67.208705
+## iter 340 value 67.189234
+## iter 350 value 67.184053
+## iter 360 value 67.168889
+## iter 370 value 67.145356
+## iter 380 value 67.140622
+## iter 390 value 67.136687
+## iter 400 value 67.130135
+## iter 410 value 67.127860
+## iter 420 value 67.127674
+## iter 430 value 67.127060
+## iter 440 value 67.126311
+## iter 450 value 67.125729
+## final  value 67.125272 
+## converged
+## # weights:  71
+## initial  value 2054.531576 
+## iter  10 value 1406.606975
+## iter  20 value 775.066882
+## iter  30 value 285.814680
+## iter  40 value 110.173902
+## iter  50 value 99.368042
+## iter  60 value 95.034620
+## iter  70 value 94.170787
+## iter  80 value 89.274434
+## iter  90 value 82.496867
+## iter 100 value 79.588621
+## iter 110 value 77.283782
+## iter 120 value 76.164664
+## iter 130 value 76.062347
+## iter 140 value 75.996037
+## iter 150 value 75.981320
+## iter 160 value 75.979905
+## iter 170 value 75.978976
+## iter 180 value 75.950028
+## iter 190 value 75.934871
+## iter 200 value 75.926326
+## iter 210 value 75.924266
+## iter 220 value 75.922669
+## iter 230 value 75.918661
+## iter 240 value 75.917183
+## iter 250 value 75.915393
+## iter 260 value 75.914209
+## iter 270 value 75.913138
+## iter 280 value 75.912370
+## iter 290 value 75.911630
+## iter 300 value 75.910976
+## iter 310 value 75.910557
+## iter 320 value 75.910185
+## iter 330 value 75.909840
+## iter 340 value 75.909579
+## final  value 75.909454 
+## converged
+## # weights:  71
+## initial  value 13888.015306 
+## iter  10 value 1090.269651
+## iter  20 value 312.394621
+## iter  30 value 170.455999
+## iter  40 value 123.113519
+## iter  50 value 112.762774
+## iter  60 value 99.838619
+## iter  70 value 94.670268
+## iter  80 value 92.094444
+## iter  90 value 91.655607
+## iter 100 value 90.780585
+## iter 110 value 85.821926
+## iter 120 value 81.474074
+## iter 130 value 78.751565
+## iter 140 value 77.079853
+## iter 150 value 76.444570
+## iter 160 value 75.574682
+## iter 170 value 74.705315
+## iter 180 value 74.471429
+## iter 190 value 74.114842
+## iter 200 value 73.654624
+## iter 210 value 73.000843
+## iter 220 value 72.418773
+## iter 230 value 72.300689
+## iter 240 value 72.267490
+## iter 250 value 71.919264
+## iter 260 value 70.921662
+## iter 270 value 70.281702
+## iter 280 value 70.062926
+## iter 290 value 69.943369
+## iter 300 value 69.861113
+## iter 310 value 69.809704
+## iter 320 value 69.354310
+## iter 330 value 68.893356
+## iter 340 value 68.766361
+## iter 350 value 68.730878
+## iter 360 value 68.681973
+## iter 370 value 68.663403
+## iter 380 value 68.660764
+## iter 390 value 68.657726
+## iter 400 value 68.647151
+## iter 410 value 68.641608
+## iter 420 value 68.634924
+## iter 430 value 68.630640
+## iter 440 value 68.630038
+## iter 450 value 68.629900
+## iter 460 value 68.629203
+## iter 470 value 68.628788
+## iter 480 value 68.628600
+## iter 490 value 68.628413
+## iter 500 value 68.627757
+## iter 510 value 68.626567
+## final  value 68.626252 
+## converged
+## # weights:  71
+## initial  value 1828.278954 
+## iter  10 value 436.562591
+## iter  20 value 137.866254
+## iter  30 value 104.172498
+## iter  40 value 97.908386
+## iter  50 value 88.539625
+## iter  60 value 87.317209
+## iter  70 value 86.905048
+## iter  80 value 86.771124
+## iter  90 value 86.463258
+## iter 100 value 86.202107
+## iter 110 value 85.524270
+## iter 120 value 84.773317
+## iter 130 value 84.540475
+## iter 140 value 84.537117
+## final  value 84.537103 
+## converged
+## # weights:  71
+## initial  value 16153.554353 
+## iter  10 value 1410.638530
+## iter  20 value 208.804097
+## iter  30 value 117.198611
+## iter  40 value 111.212996
+## iter  50 value 109.051519
+## iter  60 value 105.751106
+## iter  70 value 102.146678
+## iter  80 value 100.974110
+## iter  90 value 100.910058
+## iter  90 value 100.910058
+## iter  90 value 100.910058
+## final  value 100.910058 
+## converged
+## # weights:  71
+## initial  value 95814.575820 
+## iter  10 value 1375.870838
+## iter  20 value 220.208226
+## iter  30 value 111.281009
+## iter  40 value 103.603958
+## iter  50 value 102.564942
+## iter  60 value 100.759495
+## iter  70 value 91.416507
+## iter  80 value 84.346730
+## iter  90 value 82.288428
+## iter 100 value 81.825782
+## iter 110 value 81.275682
+## iter 120 value 80.726480
+## iter 130 value 80.568896
+## iter 140 value 80.496370
+## iter 150 value 80.455698
+## iter 160 value 80.439183
+## iter 170 value 80.426371
+## iter 180 value 80.420082
+## iter 190 value 80.415578
+## iter 200 value 80.412080
+## iter 210 value 80.407286
+## iter 220 value 80.400996
+## iter 230 value 80.248718
+## iter 240 value 80.152495
+## iter 250 value 78.758261
+## iter 260 value 78.238232
+## iter 270 value 78.088651
+## iter 280 value 77.931359
+## iter 290 value 77.798770
+## iter 300 value 77.761522
+## iter 310 value 77.574096
+## iter 320 value 77.364400
+## iter 330 value 76.973765
+## iter 340 value 76.367740
+## iter 350 value 76.010016
+## iter 360 value 75.873303
+## iter 370 value 75.838184
+## iter 380 value 75.831273
+## iter 390 value 75.813693
+## iter 400 value 75.811022
+## iter 410 value 75.808396
+## iter 420 value 75.807322
+## iter 430 value 75.805798
+## iter 440 value 75.804567
+## iter 450 value 75.803755
+## iter 460 value 75.803358
+## iter 470 value 75.802686
+## iter 480 value 75.802517
+## iter 490 value 75.802163
+## iter 500 value 75.801826
+## iter 510 value 75.801619
+## final  value 75.801556 
+## converged
+## # weights:  71
+## initial  value 18739.299233 
+## iter  10 value 756.474479
+## iter  20 value 227.315420
+## iter  30 value 111.085753
+## iter  40 value 91.741227
+## iter  50 value 88.888242
+## iter  60 value 87.798668
+## iter  70 value 87.202015
+## iter  80 value 86.620982
+## iter  90 value 85.824612
+## iter 100 value 83.288528
+## iter 110 value 81.737042
+## iter 120 value 81.367504
+## iter 130 value 81.316346
+## iter 140 value 81.289232
+## iter 150 value 81.283590
+## iter 160 value 81.271037
+## iter 170 value 81.258187
+## iter 180 value 81.248709
+## iter 190 value 81.239946
+## iter 200 value 81.234934
+## iter 210 value 81.229652
+## iter 220 value 81.225082
+## iter 230 value 81.221619
+## iter 240 value 81.219538
+## iter 250 value 81.217511
+## iter 260 value 81.215900
+## iter 270 value 81.213854
+## iter 280 value 81.212680
+## final  value 81.211791 
+## converged
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl com">#write.csv(results, file = &quot;results_5_10_20_50_100.csv&quot;)</span>
+<span class="hl com">#write.csv(Sigmas, file = &quot;Sigmas_nnet_specz0a7.csv&quot;)</span>
+<span class="hl kwd">write.csv</span><span class="hl std">(Sigmas,</span> <span class="hl kwc">file</span> <span class="hl std">=</span> <span class="hl str">&quot;Sigmas_nnet_specz0a1.csv&quot;</span><span class="hl std">)</span>
+
+<span class="hl com">#close(f)</span>
+</pre></div>
+</div></div>
