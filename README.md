@@ -1,4 +1,4 @@
-# Qualificacao
+# Relação de arquivos disponibilizados no repositório Qualificação
 
 Esse repositório foi criado para disponibilizar a documentação referente ao Exame de Qualificaçao de Amita Muralikrishna, 
 parte dos requisitos para a obtenção do doutorado em Computação Aplicada, no Instituto Nacional de Pesquisas Espaciais.
