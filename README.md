@@ -19,8 +19,8 @@ A documentação estará dividida em notebooks na linguagem R e Python em format
   4.3) Sigmas_nnet_specz0a1.csv
   4.4) Sigmas_nnet_specz0a7.csv
 
-5) Plots: com códigos para plotar os boxplots
+5) Plots: com códigos para plotar os boxplots. Possui também as imagens já salvas.
 
 OBS: Todos os arquivos que possuem o mesmo nome contêm o mesmo conteúdo, somente oferecendo uma extensão diferente.
 
-Qualquer dúvida ou colaboração pode ser enviada ao endereço de e-mail de Amita: amita.mk@gmail.com.
+Qualquer dúvida ou colaboração pode ser enviada ao endereço de e-mail: amita.mk@gmail.com.
