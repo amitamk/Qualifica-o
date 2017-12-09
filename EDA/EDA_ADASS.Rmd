@@ -1,0 +1,82 @@
+---
+title: EDA do trabalho referente ao Exame de Qualificação (Dez.2017): "Redes Neurais Artificiais para estimar redshifts fotométricos de galáxias utilizando dados do levantamento fotométrico SDSS"
+author: Amita Muralikrishna
+
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Explorando os dados de 100k galáxias do survey SSDS:
+```{r}
+dados <- read.csv(file="C:/AMk/ADASS/goodsample.csv", header=TRUE, sep=",", stringsAsFactors=FALSE)
+str(dados)
+```
+## Resumo de cada coluna
+```{r}
+summary(dados)
+```
+
+## Histograma de cada banda fotométrica e do redshift
+```{r}
+par(mfrow=c(1, 5))
+#title(main="Histogram of u (blue)")
+hist(dados$u, xlim = c(10,30), ylim = c(0,40000),xlab = "u")
+hist(dados$g, xlim = c(10,30), ylim = c(0,40000),xlab = "g")
+hist(dados$r, xlim = c(10,30), ylim = c(0,40000),xlab = "r")
+hist(dados$i, xlim = c(10,30), ylim = c(0,40000),xlab = "i")
+hist(dados$z, xlim = c(10,30), ylim = c(0,40000),xlab = "z")
+```
+
+
+## Boxplot de cada banda fotométrica e do redshift
+
+```{r}
+par(mfrow=c(1, 6))
+#pdf(file = "teste.pdf", width = 20, height = 14) 
+boxplot(dados$u, main="U",ylim = c(10,30))
+boxplot(dados$g, main="G",ylim = c(10,30))
+boxplot(dados$r, main="R",ylim = c(10,30))
+boxplot(dados$i, main="I",ylim = c(10,30))
+boxplot(dados$z, main="Z",ylim = c(10,30))
+boxplot(dados$redshift, main="Redshift")
+#dev.off() 
+```
+
+## Redshifts e Erros de redshift
+```{r}
+par(mfrow=c(1,1))
+plot(dados$redshift)
+par(mfrow=c(1,1))
+plot(dados$redshift_err)
+par(mfrow=c(1,1))
+plot(dados$redshift_err,ylim = c(-0.01,0.005))
+par(mfrow=c(1,1))
+plot(dados$redshift,dados$redshift_err,ylim = c(-0.001,0.005))
+
+```
+
+## Correlação entre cada banda fotométrica e o redshift
+```{r}
+library(gclus)
+dados.r <- abs(cor(dados)) # Calcula as correlações
+dados.col <- dmat.color(dados.r) # Define as cores
+dados.o <- order.single(dados.r) 
+cpairs(dados, dados.o, panel.colors=dados.col, gap=.5,
+main="Parâmetros coloridos de acordo com a correlação." )
+
+corr <- cor(dados$u,dados$redshift)
+round(corr,3)
+corr <- cor(dados$g,dados$redshift)
+round(corr,3)
+corr <- cor(dados$r,dados$redshift)
+round(corr,3)
+corr <- cor(dados$i,dados$redshift)
+round(corr,3)
+corr <- cor(dados$z,dados$redshift)
+round(corr,3)
+```
+
