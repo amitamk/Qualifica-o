@@ -23,4 +23,4 @@ A documentação estará dividida em notebooks na linguagem R e Python em format
 
 OBS: Todos os arquivos que possuem o mesmo nome contêm o mesmo conteúdo, somente oferecendo uma extensão diferente.
 
-Qualquer dúvida ou colaboração pode ser enviada ao endereço de e-mail: amita.mk@gmail.com.
+Quaisquer dúvidas ou sugestões podem ser enviadas ao endereço de e-mail: amita.mk@gmail.com.
