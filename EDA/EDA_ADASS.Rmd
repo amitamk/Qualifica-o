@@ -1,8 +1,11 @@
 ---
-title: EDA do trabalho referente ao Exame de Qualificação (Dez.2017): "Redes Neurais Artificiais para estimar redshifts fotométricos de galáxias utilizando dados do levantamento fotométrico SDSS"
+title: EDA do trabalho referente ao Exame de Qualificação
 author: Amita Muralikrishna
 
 output:
+  github_document:
+    toc: true
+    toc_depth: 3
   html_document: default
   pdf_document: default
 ---
@@ -12,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Explorando os dados de 100k galáxias do survey SSDS:
 ```{r}
-dados <- read.csv(file="C:/AMk/ADASS/goodsample.csv", header=TRUE, sep=",", stringsAsFactors=FALSE)
+dados <- read.csv(file="goodsample.csv", header=TRUE, sep=",", stringsAsFactors=FALSE)
 str(dados)
 ```
 ## Resumo de cada coluna
@@ -62,6 +65,8 @@ plot(dados$redshift,dados$redshift_err,ylim = c(-0.001,0.005))
 ## Correlação entre cada banda fotométrica e o redshift
 ```{r}
 library(gclus)
+dados <- read.csv(file="redshift_between0and7.csv", header=TRUE, sep=",", stringsAsFactors=FALSE)
+str(dados)
 dados.r <- abs(cor(dados)) # Calcula as correlações
 dados.col <- dmat.color(dados.r) # Define as cores
 dados.o <- order.single(dados.r) 
